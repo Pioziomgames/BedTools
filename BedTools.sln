@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31424.327
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BedEditor", "BedEditor\BedEditor.csproj", "{9291A6D5-B8CB-4ABF-9F52-4EC6264F6CE7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{538B311A-27EF-4D11-AE49-CCBE54A843D2} = {538B311A-27EF-4D11-AE49-CCBE54A843D2}
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PiosBedLibrary", "PiosBedLibrary\PiosBedLibrary.csproj", "{538B311A-27EF-4D11-AE49-CCBE54A843D2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EplAltEditor", "EplAltEditor\EplAltEditor.csproj", "{B2FCFA5B-D3DA-4F28-A901-6987BBEF180F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "batch", "batch", "{AF0CEB5C-8021-4DFD-8A63-29DDB887DC92}"
+	ProjectSection(SolutionItems) = preProject
+		batch\MassBedExtract.bat = batch\MassBedExtract.bat
+		batch\MassEffectEplExtract.bat = batch\MassEffectEplExtract.bat
+		batch\MassEplAltExtract.bat = batch\MassEplAltExtract.bat
+		batch\MassEplExtract.bat = batch\MassEplExtract.bat
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EffectEplEditor", "EffectEplEditor\EffectEplEditor.csproj", "{3E7B5E90-9783-4375-A0EB-D426F67DD0AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EplEditor", "EplEditor\EplEditor.csproj", "{181B6A9C-144F-475C-A3EB-BBA65A326323}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9291A6D5-B8CB-4ABF-9F52-4EC6264F6CE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9291A6D5-B8CB-4ABF-9F52-4EC6264F6CE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9291A6D5-B8CB-4ABF-9F52-4EC6264F6CE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9291A6D5-B8CB-4ABF-9F52-4EC6264F6CE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{538B311A-27EF-4D11-AE49-CCBE54A843D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{538B311A-27EF-4D11-AE49-CCBE54A843D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{538B311A-27EF-4D11-AE49-CCBE54A843D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{538B311A-27EF-4D11-AE49-CCBE54A843D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2FCFA5B-D3DA-4F28-A901-6987BBEF180F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2FCFA5B-D3DA-4F28-A901-6987BBEF180F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2FCFA5B-D3DA-4F28-A901-6987BBEF180F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2FCFA5B-D3DA-4F28-A901-6987BBEF180F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E7B5E90-9783-4375-A0EB-D426F67DD0AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E7B5E90-9783-4375-A0EB-D426F67DD0AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E7B5E90-9783-4375-A0EB-D426F67DD0AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E7B5E90-9783-4375-A0EB-D426F67DD0AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{181B6A9C-144F-475C-A3EB-BBA65A326323}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{181B6A9C-144F-475C-A3EB-BBA65A326323}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{181B6A9C-144F-475C-A3EB-BBA65A326323}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{181B6A9C-144F-475C-A3EB-BBA65A326323}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {32D40DC9-4173-43D2-A522-E005C497D545}
+	EndGlobalSection
+EndGlobal
