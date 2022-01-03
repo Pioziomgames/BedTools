@@ -6,7 +6,7 @@ using System.IO;
 
 namespace PiosBedLibrary
 {
-    class Functions
+    public class Functions
     {
         public static int CalculatePadding(int position)
         {

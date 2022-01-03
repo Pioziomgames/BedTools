@@ -73,7 +73,6 @@ namespace PiosBedLibrary
             {
                 if (!Declarations[i].UsesIndex)
                 {
-                    Debug.WriteLine($"Ep: {index} at {reader.BaseStream.Position}");
                     Eps.Add(new Ep(reader));
                     Order.Add(index);
                     index++;
@@ -113,7 +112,10 @@ namespace PiosBedLibrary
                 size += DataSize;
                 size += CalculatePadding(size);
                 size += FileSize;
-                size += CalculatePadding(size);
+                if (CalculatePadding(size) > 100) // sometimes gives a weird result but only when using a ulong
+                    size += (ulong)CalculatePadding((int)size);
+                else
+                    size += CalculatePadding(size);
 
                 return size;
             }
@@ -137,14 +139,12 @@ namespace PiosBedLibrary
             Ep2 = reader.ReadBytes(8);
             FileSize = reader.ReadUInt64();
             Data = reader.ReadBytes((int)DataSize);
-            Debug.WriteLine($"DataSize: {DataSize}");
             int h = (int)CalculatePadding(reader.BaseStream.Position - Offset);
             reader.ReadBytes(h);
 
             File = reader.ReadBytes((int)FileSize);
             h = (int)CalculatePadding(reader.BaseStream.Position - Offset);
             reader.ReadBytes(h);
-            Debug.WriteLine($"padding: {h}");
         }
         public Ep(string path)
         {

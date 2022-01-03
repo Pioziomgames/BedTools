@@ -43,7 +43,9 @@ namespace PiosBedLibrary
         }
         /// <summary>
         /// Reads a <see cref="Bed"/> from the
-        /// current postion of a <see cref="BinaryReader"/>.
+        /// current postion of a <see cref="BinaryReader"/>
+        /// if no end point is specified bed will
+        /// be read to the end of a file
         /// </summary>
         public Bed(BinaryReader reader, long End = 0)
         {
@@ -56,7 +58,14 @@ namespace PiosBedLibrary
             header = reader.ReadBytes(1576);
             EplFiles = new List<Epl>();
             while (reader.BaseStream.Position < End)
+            {
                 EplFiles.Add(new Epl(reader));
+                if (reader.BaseStream.Position == End - 16)
+                {
+                    reader.ReadBytes(16);
+                }
+            }
+                
         }
         /// <summary>
         /// Reads a <see cref="Bed"/> from a file.
@@ -76,6 +85,10 @@ namespace PiosBedLibrary
             while (reader.BaseStream.Position < reader.BaseStream.Length)
             {
                 EplFiles.Add(new Epl(reader));
+                if (reader.BaseStream.Position == reader.BaseStream.Length - 16)
+                {
+                    reader.ReadBytes(16);
+                }
             }
 
         }

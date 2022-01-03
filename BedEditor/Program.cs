@@ -46,7 +46,11 @@ namespace BedEditor
             {
                 Console.WriteLine($"Loading: {InputFile}...");
 
+
+
                 Bed BedFile = new Bed(InputFile);
+
+
 
                 if (Directory.Exists(path))
                     Directory.Delete(path, true);

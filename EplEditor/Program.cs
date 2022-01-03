@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using PiosBedLibrary;
 using Newtonsoft.Json;
+using static PiosBedLibrary.Functions;
 
 namespace EplEditor
 {
@@ -29,12 +30,9 @@ namespace EplEditor
 
         static void Main(string[] args)
         {
+
             string InputFile = "";
 
-
-#if DEBUG
-            args = new string[] { @"E:\pobrane\BEDeditor\test\101_1584_376960.epl" }; // Arguments for testing
-#endif
 
             if (args.Length > 0)
                 InputFile = args[0];
@@ -142,131 +140,190 @@ namespace EplEditor
 
             Console.WriteLine($"Reading the contents of: {InputFile}...");
 
-            if (!File.Exists(InputFile + @"\header"))
-            {
-                Console.WriteLine("\nheader file does not exist");
-                Exit();
-            }
-
-            if (!File.Exists(InputFile + @"\Order.json"))
-            {
-                Console.WriteLine("\nOrder.json does not exist");
-                Exit();
-            }
-
-            Header header = new Header(InputFile + @"\header");
-
-            string[] folders = Directory.GetDirectories(InputFile + @"\ep");
-            List<Ep> Eps = new List<Ep>();
-
-            foreach (string folder in folders)
-            {
-
-                Ep NewEp = new Ep();
-                foreach (string file in Directory.GetFiles(folder))
+            //try
+            //{
+                if (!File.Exists(InputFile + @"\header"))
                 {
-                    Debug.WriteLine($"Reading: {file}");
-                    if (file.ToLower().Contains("epdata"))
-                        NewEp.Data = File.ReadAllBytes(file);
-                    else if (file.ToLower().Contains("embeded"))
-                        NewEp.File = File.ReadAllBytes(file);
-                    else if (file.ToLower().Contains("headerdata1"))
-                        NewEp.Ep1 = File.ReadAllBytes(file);
-                    else if (file.ToLower().Contains("headerdata2"))
-                        NewEp.Ep2 = File.ReadAllBytes(file);
-                }
-                if (NewEp.Data == null)
-                {
-                    Console.WriteLine($"\n {folder}\\epdata doesn't exist");
+                    Console.WriteLine("\nheader file does not exist");
                     Exit();
                 }
 
-                if (NewEp.File == null)
+                if (!File.Exists(InputFile + @"\Order.json"))
                 {
-                    Console.WriteLine($"\n {folder}\\embeded doesn't exist");
+                    Console.WriteLine("\nOrder.json does not exist");
                     Exit();
                 }
 
-                if (NewEp.Ep1 == null)
+                Header header = new Header(InputFile + @"\header");
+
+                string[] folders = Directory.GetDirectories(InputFile + @"\ep");
+                List<Ep> Eps = new List<Ep>();
+
+                foreach (string folder in folders)
                 {
-                    Console.WriteLine($"\n {folder}\\headerdata1 doesn't exist");
+
+                    Ep NewEp = new Ep();
+                    foreach (string file in Directory.GetFiles(folder))
+                    {
+                        Debug.WriteLine($"Reading: {file}");
+                        if (file.ToLower().Contains("epdata"))
+                            NewEp.Data = File.ReadAllBytes(file);
+                        else if (file.ToLower().Contains("embeded"))
+                            NewEp.File = File.ReadAllBytes(file);
+                        else if (file.ToLower().Contains("headerdata1"))
+                            NewEp.Ep1 = File.ReadAllBytes(file);
+                        else if (file.ToLower().Contains("headerdata2"))
+                            NewEp.Ep2 = File.ReadAllBytes(file);
+                    }
+                    if (NewEp.Data == null)
+                    {
+                        Console.WriteLine($"\n {folder}\\epdata doesn't exist");
+                        Exit();
+                    }
+
+                    if (NewEp.File == null)
+                    {
+                        Console.WriteLine($"\n {folder}\\embeded doesn't exist");
+                        Exit();
+                    }
+
+                    if (NewEp.Ep1 == null)
+                    {
+                        Console.WriteLine($"\n {folder}\\headerdata1 doesn't exist");
+                        Exit();
+                    }
+
+                    if (NewEp.Ep2 == null)
+                    {
+                        Console.WriteLine($"\n {folder}\\headerdata2 doesn't exist");
+                        Exit();
+                    }
+
+                    NewEp.DataSize = (ulong)NewEp.Data.Length;
+                    NewEp.FileSize = (ulong)NewEp.File.Length;
+                    Eps.Add(NewEp);
+                }
+
+
+                string[] files = Directory.GetFiles(InputFile + @"\Declarations", "*.dec");
+                List<Declaration> Declarations = new List<Declaration>();
+
+                foreach (string file in files)
+                    Declarations.Add(new Declaration(file));
+
+
+                string JsonFromFile;
+                using (var reader = new StreamReader(InputFile + @"\Order.json"))
+                    JsonFromFile = reader.ReadToEnd();
+
+                List<int> Order = JsonConvert.DeserializeObject<List<int>>(JsonFromFile);
+
+                if (Order.Count != Declarations.Count)
+                {
+                    Console.WriteLine($"\nNumber of declarations({Declarations.Count}) doesn't match the number of values in Order.json({Order.Count})");
                     Exit();
                 }
 
-                if (NewEp.Ep2 == null)
+                header.DeclarationCount = Declarations.Count;
+
+                List<uint> OffsetList = new List<uint>();
+
+                uint size = 144;
+                size += (uint)Declarations.Count * 192;
+                int seggs = 0;
+                foreach (Ep Ep in Eps)
                 {
-                    Console.WriteLine($"\n {folder}\\headerdata2 doesn't exist");
-                    Exit();
+                    Debug.WriteLine($"seggs: {seggs}");
+                    seggs++;
+                    OffsetList.Add(size);
+                    size += (uint)Ep.EpSize;
+
+                    Debug.WriteLine($"Size: {size}");
                 }
 
-                NewEp.DataSize = (ulong)NewEp.Data.Length;
-                NewEp.FileSize = (ulong)NewEp.File.Length;
-                Eps.Add(NewEp);
-            }
+                List<int> UsedValues = new List<int>();
 
-
-            string[] files = Directory.GetFiles(InputFile + @"\Declarations", "*.dec");
-            List<Declaration> Declarations = new List<Declaration>();
-
-            foreach (string file in files)
-            {
-                var sex = new Declaration(file);
-                Declarations.Add(sex);
-            }
-
-
-            string JsonFromFile;
-            using (var reader = new StreamReader(InputFile + @"\Order.json"))
-                JsonFromFile = reader.ReadToEnd();
-
-            List<int> Order = JsonConvert.DeserializeObject<List<int>>(JsonFromFile);
-
-            if (Order.Count != Declarations.Count)
-            {
-                Console.WriteLine($"\nNumber of declarations({Declarations.Count}) doesn't match the number of values in Order.json({Order.Count})");
-                Exit();
-            }
-
-            header.DeclarationCount = Declarations.Count;
-
-            List<uint> OffsetList = new List<uint>();
-
-            uint size = 144;
-            size += (uint)Declarations.Count * 192;
-            foreach (Ep Ep in Eps)
-            {
-                OffsetList.Add(size);
-                size += (uint)Ep.EpSize;
-            }
-
-            List<int> UsedValues = new List<int>();
-
-            for (int i = 0; i < Declarations.Count; i++)
-            {
-
-                if (UsedValues.Contains(Order[i]))
+                int index = 0;
+                for (int i = 0; i < Declarations.Count; i++)
                 {
-                    Declarations[i].OffsetOrIndex = (uint)Order[i];
-                    Declarations[i].UsesIndex = true;
+                    if (UsedValues.Contains(Order[i]) || Order[i] > OffsetList.Count -1)
+                    {
+                        Debug.WriteLine($"order for {i}: {Order[i]}");
+                        Declarations[i].OffsetOrIndex = (uint)Order[i];
+                        Declarations[i].UsesIndex = true;
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"order for {i}: {Order[i]}");
+                        Debug.WriteLine($"but it uses offset: {OffsetList[Order[i]]}");
+                        Declarations[i].OffsetOrIndex = OffsetList[Order[i]];
+                        Declarations[i].UsesIndex = false;
+                        UsedValues.Add(Order[i]);
+                        index++;
+                    }
+
                 }
-                else
+                /*
+                for (int i = 0; i < Declarations.Count; i++)
                 {
-                    Declarations[i].OffsetOrIndex = OffsetList[Order[i]];
-                    Declarations[i].UsesIndex = false;
-                    UsedValues.Add(Order[i]);
+
+                    if (UsedValues.Contains(Order[i]))
+                    {
+                        Debug.WriteLine($"order for {i}: {Order[i]}");
+                        Declarations[i].OffsetOrIndex = (uint)Order[i];
+                        Declarations[i].UsesIndex = true;
+                    }
+                    else if (Declarations.Count - 1 > i)
+                    {
+                        if (CurrentOffset + OffsetList[Order[i]] > CurrentOffset + OffsetList[index + 1])
+                        {
+                            Debug.WriteLine($"order for {i}: {Order[i]}");
+                            Declarations[i].OffsetOrIndex = (uint)Order[i];
+                            Declarations[i].UsesIndex = true;
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"order for {i}: {Order[i]}");
+                            Debug.WriteLine($"but it uses offeset: {OffsetList[Order[i]]}");
+                            Declarations[i].OffsetOrIndex = OffsetList[Order[i]];
+                            Declarations[i].UsesIndex = false;
+
+                            CurrentOffset += OffsetList[Order[i]];
+                            UsedValues.Add(Order[i]);
+                            index++;
+                        }
+
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"order for {i}: {Order[i]}");
+                        Debug.WriteLine($"but it uses offset: {OffsetList[Order[i]]}");
+                        Declarations[i].OffsetOrIndex = OffsetList[Order[i]];
+                        Declarations[i].UsesIndex = false;
+
+                        CurrentOffset += OffsetList[Order[i]];
+                        UsedValues.Add(Order[i]);
+                        index++;
+                    }
+
                 }
+                */
+                Epl eplFile = new Epl();
 
-            }
+                eplFile.header = header;
+                eplFile.Eps = Eps;
+                eplFile.Declarations = Declarations;
 
-            Epl eplFile = new Epl();
+                eplFile.Save(path);
 
-            eplFile.header = header;
-            eplFile.Eps = Eps;
-            eplFile.Declarations = Declarations;
+                Console.WriteLine($"\nEpl File Saved to: {path}");
+            //}
+            //catch
+            //{
+            //    File.AppendAllText(@"D:\ok\bed\log.txt",InputFile + "\n");
+            // }
 
-            eplFile.Save(path);
-
-            Console.WriteLine($"\nEpl File Saved to: {path}");
+            
         }
     }
 }
