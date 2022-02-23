@@ -30,6 +30,8 @@ namespace EplEditor
 
         static void Main(string[] args)
         {
+            args = new string[] { @"C:\Users\oem\Desktop\amd test\test\0C1_extracted\00_extracted" };
+
 
             string InputFile = "";
 
@@ -51,7 +53,7 @@ namespace EplEditor
             if (args.Length > 1)
                 path = args[1];
 
-
+            
             if (File.Exists(InputFile))
             {
                 Console.WriteLine($"Loading: {InputFile}...");
@@ -86,23 +88,23 @@ namespace EplEditor
                     File.WriteAllBytes($@"{path}\ep\{i.ToString(zeros)}\HeaderData2", EplFile.Eps[i].Ep2);
                     Debug.WriteLine($@"Writing to: {path}\ep\{i.ToString(zeros)}\EpData");
                     File.WriteAllBytes($@"{path}\ep\{i.ToString(zeros)}\EpData", EplFile.Eps[i].Data);
-                    byte[] embeded = EplFile.Eps[i].File;
+                    byte[] embedded = EplFile.Eps[i].File;
                     string extension = "";
-                    if (embeded.Length > 12)
+                    if (embedded.Length > 12)
                     {
 
-                        if (embeded[0] == (byte)79 && embeded[1] == (byte)77 && embeded[2] == (byte)71)
+                        if (embedded[0] == (byte)79 && embedded[1] == (byte)77 && embedded[2] == (byte)71)
                             extension = ".gmo";
-                        else if (embeded[8] == (byte)84 && embeded[9] == (byte)77 && embeded[10] == (byte)88 && embeded[11] == (byte)48)
+                        else if (embedded[8] == (byte)84 && embedded[9] == (byte)77 && embedded[10] == (byte)88 && embedded[11] == (byte)48)
                             extension = ".tmx";
-                        else if (embeded[0] == (byte)67 && embeded[1] == (byte)72 && embeded[2] == (byte)78 && embeded[3] == (byte)75)
+                        else if (embedded[0] == (byte)67 && embedded[1] == (byte)72 && embedded[2] == (byte)78 && embedded[3] == (byte)75)
                             extension = ".amd";
-                        else if (embeded[15] == (byte)128 && embeded[16] == (byte)63)
+                        else if (embedded[15] == (byte)128 && embedded[16] == (byte)63)
                             extension = ".epl";
-                        else if (embeded[0] == (byte)240 && embeded[1] == (byte)0 && embeded[2] == (byte)240 && embeded[3] == (byte)240)
+                        else if (embedded[0] == (byte)240 && embedded[1] == (byte)0 && embedded[2] == (byte)240 && embedded[3] == (byte)240)
                             extension = ".rmd";
                     }
-                    File.WriteAllBytes($@"{path}\ep\{i.ToString(zeros)}\embeded{extension}", embeded);
+                    File.WriteAllBytes($@"{path}\ep\{i.ToString(zeros)}\embedded{extension}", embedded);
                 }
 
                 zeros = "";
@@ -140,8 +142,6 @@ namespace EplEditor
 
             Console.WriteLine($"Reading the contents of: {InputFile}...");
 
-            //try
-            //{
                 if (!File.Exists(InputFile + @"\header"))
                 {
                     Console.WriteLine("\nheader file does not exist");
@@ -168,7 +168,7 @@ namespace EplEditor
                         Debug.WriteLine($"Reading: {file}");
                         if (file.ToLower().Contains("epdata"))
                             NewEp.Data = File.ReadAllBytes(file);
-                        else if (file.ToLower().Contains("embeded"))
+                        else if (file.ToLower().Contains("embedded"))
                             NewEp.File = File.ReadAllBytes(file);
                         else if (file.ToLower().Contains("headerdata1"))
                             NewEp.Ep1 = File.ReadAllBytes(file);
@@ -183,7 +183,7 @@ namespace EplEditor
 
                     if (NewEp.File == null)
                     {
-                        Console.WriteLine($"\n {folder}\\embeded doesn't exist");
+                        Console.WriteLine($"\n {folder}\\embedded doesn't exist");
                         Exit();
                     }
 
@@ -213,7 +213,7 @@ namespace EplEditor
 
 
                 string JsonFromFile;
-                using (var reader = new StreamReader(InputFile + @"\Order.json"))
+                using (StreamReader reader = new StreamReader(InputFile + @"\Order.json"))
                     JsonFromFile = reader.ReadToEnd();
 
                 List<int> Order = JsonConvert.DeserializeObject<List<int>>(JsonFromFile);
@@ -230,11 +230,8 @@ namespace EplEditor
 
                 uint size = 144;
                 size += (uint)Declarations.Count * 192;
-                int seggs = 0;
                 foreach (Ep Ep in Eps)
                 {
-                    Debug.WriteLine($"seggs: {seggs}");
-                    seggs++;
                     OffsetList.Add(size);
                     size += (uint)Ep.EpSize;
 
@@ -263,51 +260,7 @@ namespace EplEditor
                     }
 
                 }
-                /*
-                for (int i = 0; i < Declarations.Count; i++)
-                {
-
-                    if (UsedValues.Contains(Order[i]))
-                    {
-                        Debug.WriteLine($"order for {i}: {Order[i]}");
-                        Declarations[i].OffsetOrIndex = (uint)Order[i];
-                        Declarations[i].UsesIndex = true;
-                    }
-                    else if (Declarations.Count - 1 > i)
-                    {
-                        if (CurrentOffset + OffsetList[Order[i]] > CurrentOffset + OffsetList[index + 1])
-                        {
-                            Debug.WriteLine($"order for {i}: {Order[i]}");
-                            Declarations[i].OffsetOrIndex = (uint)Order[i];
-                            Declarations[i].UsesIndex = true;
-                        }
-                        else
-                        {
-                            Debug.WriteLine($"order for {i}: {Order[i]}");
-                            Debug.WriteLine($"but it uses offeset: {OffsetList[Order[i]]}");
-                            Declarations[i].OffsetOrIndex = OffsetList[Order[i]];
-                            Declarations[i].UsesIndex = false;
-
-                            CurrentOffset += OffsetList[Order[i]];
-                            UsedValues.Add(Order[i]);
-                            index++;
-                        }
-
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"order for {i}: {Order[i]}");
-                        Debug.WriteLine($"but it uses offset: {OffsetList[Order[i]]}");
-                        Declarations[i].OffsetOrIndex = OffsetList[Order[i]];
-                        Declarations[i].UsesIndex = false;
-
-                        CurrentOffset += OffsetList[Order[i]];
-                        UsedValues.Add(Order[i]);
-                        index++;
-                    }
-
-                }
-                */
+                
                 Epl eplFile = new Epl();
 
                 eplFile.header = header;
@@ -317,11 +270,6 @@ namespace EplEditor
                 eplFile.Save(path);
 
                 Console.WriteLine($"\nEpl File Saved to: {path}");
-            //}
-            //catch
-            //{
-            //    File.AppendAllText(@"D:\ok\bed\log.txt",InputFile + "\n");
-            // }
 
             
         }

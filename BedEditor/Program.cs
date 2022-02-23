@@ -21,7 +21,7 @@ namespace BedEditor
         }
         static void Main(string[] args)
         {
-
+            
             string InputFile = "";
 
 

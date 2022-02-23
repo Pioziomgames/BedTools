@@ -8,7 +8,7 @@ namespace PiosBedLibrary
 {
     public class Epl
     {
-        public List<uint> Order { get; }
+        public List<uint> Order { get; set; }
         public Header header { get; set; }
         public List<Declaration> Declarations = new List<Declaration>();
         public List<Ep> Eps = new List<Ep>();
@@ -26,11 +26,37 @@ namespace PiosBedLibrary
 
         public Epl()
         {
-
+            Declarations = new List<Declaration>();
+            Order = new List<uint>();
+        }
+        public Epl(byte[] Bytes)
+        {
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(Bytes)))
+                ReadData(reader);
         }
         public Epl(BinaryReader reader)
         {
+            ReadData(reader);  
+        }
+        public Epl(string path)
+        {
 
+            using (BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open)))
+                ReadData(reader);
+        }
+        public void Save(string path)
+        {
+            using (BinaryWriter writer = new BinaryWriter(System.IO.File.Open(path, FileMode.Create)))
+                WriteData(writer);
+
+        }
+        public void Save(BinaryWriter writer)
+        {
+            WriteData(writer);
+        }
+
+        private void ReadData(BinaryReader reader)
+        {
             header = new Header(reader);
             Declarations = new List<Declaration>();
             for (int i = 0; i < header.DeclarationCount; i++)
@@ -40,35 +66,6 @@ namespace PiosBedLibrary
 
             Order = new List<uint>();
             uint index = 0;
-            for (int i =0; i < header.DeclarationCount; i++)
-            {
-                if (!Declarations[i].UsesIndex)
-                {
-                    Eps.Add(new Ep(reader));
-                    Order.Add(index);
-                    index++;
-                }
-                else
-                    Order.Add(Declarations[i].OffsetOrIndex);
-            }
-                
-                    
-        }
-        public Epl(string path)
-        {
-
-            BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open));
-
-
-            header = new Header(reader);
-
-            Declarations = new List<Declaration>();
-            for (int i = 0; i < header.DeclarationCount; i++)
-                Declarations.Add(new Declaration(reader));
-
-            Order = new List<uint>();
-
-            uint index = 0;
             for (int i = 0; i < header.DeclarationCount; i++)
             {
                 if (!Declarations[i].UsesIndex)
@@ -81,19 +78,7 @@ namespace PiosBedLibrary
                     Order.Add(Declarations[i].OffsetOrIndex);
             }
         }
-        public void Save(string path)
-        {
-            using (BinaryWriter writer = new BinaryWriter(System.IO.File.Open(path, FileMode.Create)))
-            {
-                header.Save(writer);
-                foreach (Declaration dec in Declarations)
-                    dec.Save(writer);
-                foreach (Ep Ep in Eps)
-                    Ep.Save(writer);
-            }
-
-        }
-        public void Save(BinaryWriter writer)
+        private void WriteData(BinaryWriter writer)
         {
             header.Save(writer);
             foreach (Declaration dec in Declarations)
@@ -130,7 +115,35 @@ namespace PiosBedLibrary
         {
 
         }
+        public Ep(byte[] Bytes)
+        {
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(Bytes)))
+                ReadData(reader);
+        }
         public Ep(BinaryReader reader)
+        {
+            ReadData(reader);
+        }
+        public Ep(string path)
+        {
+            using (BinaryReader reader = new BinaryReader(System.IO.File.Open(path, FileMode.Open)))
+                ReadData(reader);
+
+
+        }
+        public void Save(string path)
+        {
+            using (BinaryWriter writer = new BinaryWriter(System.IO.File.Open(path, FileMode.Create)))
+                WriteData(writer);
+
+        }
+        public void Save(BinaryWriter writer)
+        {
+            WriteData(writer);
+
+        }
+
+        private void ReadData(BinaryReader reader)
         {
             long Offset = reader.BaseStream.Position;
 
@@ -146,45 +159,8 @@ namespace PiosBedLibrary
             h = (int)CalculatePadding(reader.BaseStream.Position - Offset);
             reader.ReadBytes(h);
         }
-        public Ep(string path)
-        {
-            BinaryReader reader = new BinaryReader(System.IO.File.Open(path, FileMode.Open));
-            long Offset = reader.BaseStream.Position;
 
-            Ep1 = reader.ReadBytes(20);
-            DataSize = reader.ReadUInt64();
-            Ep2 = reader.ReadBytes(8);
-            FileSize = reader.ReadUInt64();
-            Data = reader.ReadBytes((int)DataSize);
-            reader.ReadBytes((int)CalculatePadding(reader.BaseStream.Position - Offset));
-
-            File = reader.ReadBytes((int)FileSize);
-            reader.ReadBytes((int)CalculatePadding(reader.BaseStream.Position - Offset));
-
-
-        }
-        public void Save(string path)
-        {
-            using (BinaryWriter writer = new BinaryWriter(System.IO.File.Open(path, FileMode.Create)))
-            {
-                writer.Write(Ep1);
-                writer.Write(DataSize);
-                writer.Write(Ep2);
-                writer.Write(FileSize);
-                writer.Write(Data);
-
-                long h = CalculatePadding(writer.BaseStream.Position);
-                for (long i = 0; i < h; i++)
-                    writer.Write((byte)0);
-
-                writer.Write(File);
-                h = CalculatePadding(writer.BaseStream.Position);
-                for (long i = 0; i < h; i++)
-                    writer.Write((byte)0);
-            }
-
-        }
-        public void Save(BinaryWriter writer)
+        private void WriteData(BinaryWriter writer)
         {
             long offset = writer.BaseStream.Position;
             writer.Write(Ep1);
@@ -201,7 +177,6 @@ namespace PiosBedLibrary
             h = CalculatePadding(writer.BaseStream.Position - offset);
             for (long i = 0; i < h; i++)
                 writer.Write((byte)0);
-
         }
     }
     public class Header
@@ -220,33 +195,41 @@ namespace PiosBedLibrary
         }
         public Header(BinaryReader reader)
         {
-            Header1 = reader.ReadBytes(128);
-            DeclarationCount = reader.ReadInt32();
-            Header2 = reader.ReadBytes(12);
+            ReadData(reader);
+        }
+        public Header(byte[] Bytes)
+        {
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(Bytes)))
+                ReadData(reader);
         }
         public Header(string path)
         {
-            BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open));
-            Header1 = reader.ReadBytes(128);
-            DeclarationCount = reader.ReadInt32();
-            Header2 = reader.ReadBytes(12);
+            using (BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open)))
+                ReadData(reader);
         }
         public void Save(string path)
         {
             using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
-            {
-                writer.Write(Header1);
-                writer.Write(DeclarationCount);
-                writer.Write(Header2);
-            }
+                WriteData(writer);
 
         }
         public void Save(BinaryWriter writer)
         {
+            WriteData(writer);
+        }
+
+        private void ReadData(BinaryReader reader)
+        {
+            Header1 = reader.ReadBytes(128);
+            DeclarationCount = reader.ReadInt32();
+            Header2 = reader.ReadBytes(12);
+        }
+
+        private void WriteData(BinaryWriter writer)
+        {
             writer.Write(Header1);
             writer.Write(DeclarationCount);
             writer.Write(Header2);
-
         }
     }
     public class Declaration
@@ -267,7 +250,32 @@ namespace PiosBedLibrary
         {
 
         }
+        public Declaration(byte[] Bytes, int DecNum = 1)
+        {
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(Bytes)))
+                ReadData(reader, DecNum);
+        }
         public Declaration(BinaryReader reader, int DecNum = 1)
+        {
+            ReadData(reader,DecNum);
+        }
+        public Declaration(string path)
+        {
+            using (BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open)))
+                ReadData(reader);
+        }
+        public void Save(string path)
+        {
+            using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
+                WriteData(writer);
+
+        }
+        public void Save(BinaryWriter writer)
+        {
+            WriteData(writer);
+        }
+
+        private void ReadData(BinaryReader reader, int DecNum = 1)
         {
             Declaration1 = reader.ReadBytes(144);
             OffsetOrIndex = reader.ReadUInt32();
@@ -281,40 +289,13 @@ namespace PiosBedLibrary
             Type = TypeList.ToArray();
             Declaration3 = reader.ReadBytes(28);
         }
-        public Declaration(string path)
-        {
-            BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open));
-            Declaration1 = reader.ReadBytes(144);
-            OffsetOrIndex = reader.ReadUInt32();
-            Declaration2 = reader.ReadBytes(8);
-            byte[] TypeInBytes = reader.ReadBytes(8);//Gives a weird error if I use ReadChars
-            var TypeList = new List<char>();
-            foreach (byte Byte in TypeInBytes)
-                TypeList.Add(Convert.ToChar(Byte));
-            Type = TypeList.ToArray();
-            Declaration3 = reader.ReadBytes(28);
-        }
-        public void Save(string path)
-        {
-            using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
-            {
-                writer.Write(Declaration1);
-                writer.Write(OffsetOrIndex);
-                writer.Write(Declaration2);
-                writer.Write(Type);
-                writer.Write(Declaration3);
-            }
-
-        }
-        public void Save(BinaryWriter writer)
+        private void WriteData(BinaryWriter writer)
         {
             writer.Write(Declaration1);
             writer.Write(OffsetOrIndex);
             writer.Write(Declaration2);
             writer.Write(Type);
             writer.Write(Declaration3);
-
-
         }
     }
 }
