@@ -30,7 +30,6 @@ namespace EplEditor
 
         static void Main(string[] args)
         {
-            args = new string[] { @"C:\Users\oem\Desktop\amd test\test\0C1_extracted\00_extracted" };
 
 
             string InputFile = "";
